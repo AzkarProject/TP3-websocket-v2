@@ -111,7 +111,7 @@ welcomePlayer += "Collisions > freeze conrôles > 10 secondes.\n";
 welcomePlayer += "Sorties de piste > Retour à la grille de départ.\n";
 welcomePlayer += " \n";
 welcomePlayer += " ------ Couleurs ------ \n";
-welcomePlayer += "Vous: vert - Autres pilotes: noir.";
+welcomePlayer += "Vous: vert - Autres pilotes: noir.\n";
 welcomePlayer += "N° Dossart: Orange - Si Freeze temporaire: gris.";
 
 
