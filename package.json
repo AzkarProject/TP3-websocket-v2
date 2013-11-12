@@ -1,0 +1,15 @@
+{
+  "name": "tp4-v2",
+  "subdomain": "titileterrible-tp4-v2",
+  "scripts": {
+    "start": "server.js"
+  },
+  "version": "1.0.0-34",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "dependencies": {
+    "express": "3.4.x",
+    "socket.io": "0.9.x"
+  }
+}

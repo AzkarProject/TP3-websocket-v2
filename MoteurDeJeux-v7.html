@@ -1,0 +1,947 @@
+<!DOCTYPE HTML>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+</head>
+    
+    <script src="socket.io/socket.io.js"></script>
+ 
+    <link href="jquery-ui/css/ui-lightness/jquery-ui-1.9.2.custom.css" rel="stylesheet">
+	  <script src="jquery-ui/js/jquery-1.8.3.js"></script>
+	  <script src="jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+    
+      
+    <link type="text/css" href="jquery-ui/css/jquery.ui.chatbox.css" rel="stylesheet" />
+    <script type="text/javascript" src="jquery-ui/js/jquery.ui.chatbox.js"></script>
+    <script src="common.js"></script>
+    
+    <script src="utils.js"></script>
+    
+    <style>
+        body {
+            margin: 10px;
+            padding: 0px;
+            width: 1100px;
+        }
+        #containerEcran{
+          /*border:1px solid #000000; */
+          box-shadow: -1px 2px 5px 1px rgba(0, 0, 0, 0.7); 
+          margin:5px;
+          padding:5px;
+          /*max-width:1050; 
+          min-width:1050; /**/
+          width:810px;
+          }
+        #containerAiredejeu {
+            float:left;
+            }  
+          #myCanvas,#messageCanvas {
+              /*border: 1px solid #9C9898;  */
+              box-shadow: -1px 2px 5px 1px rgba(0, 0, 0, 0.7);
+              margin:5px; 
+              }
+        #containerConnectes {
+          float:left;
+          width:165px;
+          /*border:1px solid black; */
+          box-shadow: -1px 2px 5px 1px rgba(0, 0, 0, 0.7); 
+          margin: 5px;
+          /*height:300px;*/
+          padding:10px;
+          overflow:scroll-y;
+          }
+          #containerPilotes {}
+          #containerUsers {}
+        #containerTchat {
+          float:left;
+          width:300px;
+          height:250px;
+          overflow:scroll-y;
+          padding:10px;
+          }
+          #containerConversation {
+            width;340px;
+            border:1px solid #cccccc;
+            margin-top:5px;
+            padding:2px;
+            overflow:hidden;
+            
+            }
+          #containerSend {}
+          .hidden {display:none;}
+    
+    
+    
+    
+    </style>
+    
+   
+   <script>
+    
+    // TODOLIST:
+    // DO Repositionner joueurs si sortie de piste... 
+    // DO Bug regression > Fillcolor collisions du joueur 1...
+    // DO Sortie du joueur ayant terminé le niveau...
+    // DO Tests de passage de niveau
+    // DO Messages de cible atteinte
+    // DO Messages de sortie de piste
+    // DO Messages de fin de niveau
+    // DO Bug regression ( suite message ) > Fillcolor collisions.
+    // DO Zone de départ protégée des collisions
+    // DO Matérialiser la zone de départ protégée
+    // DO Zone d'affichage dédiée...
+    // DO Axe rebonds sur collision aléatoire ( modifié because synchro websocket)
+    // DO Rebonds multidirectionnels
+    // DO Perte de contrôle temporisée en cas de collision
+    // DO Rebonds dynamiques des cibles en cas de collision
+    // DO Automatiser le placement des joueurs en fonction de leur nombre
+    // DO Passage de niveau : augmentation du nombre d'obstacle
+    // DO BUG recession rebond collision joueur 1.
+    // DO compte a rebours sur passage de niveau.
+    // DO incrémentation du score de chaque joueur
+    // DO BUG collision cible fantome avec joueur gagnant? 
+    // DO Lancement manuel de la course avec bouton...
+    // DO Mise en en place d'un compte a rebour...
+    // DO Mise en place d'un chronomètre...
+    // DO interruption du chrono entre chaque niveau
+    // - mémorisation temps intermédiaires 
+    // - chronos individuels par joueurs
+    // DO Affichage du framerate de la machine cliente.
+    // DO Affichage des scores finaux
+    // - Couleur des messages
+    // DO Gestion de la Pole position selon classement
+    // -----------------------------------------------------
+    // - En option ( si le temps le permet )
+    
+    // DO Fragmentation obstacles sur collisions joueurs
+    // --- Effets sonores
+    // --- Musique
+    // --- Vidéo
+    // --- Sprites
+    
+    // Partie Websocket...
+    // DO Creation fihier bat lancement node js
+    // DO reprise structure code > meilleur lisibilité
+    // DO adaptation numérotation liste joueurs
+    // DO synchro listeJoueurs locale/serveur
+    // DO gestion limite max joueurs
+    // DO recalage pole position sur liste joueurs
+    // DO lancement auto si nbre joueurs max inscrits
+    // DO Verouillage session de jeu sur lancement auto
+    // >> DO Desactivation bouton start joueurs 
+    // DO Lancement manuel bouton 
+    // >> DO verouillage session jeu sur lancement manuel
+    // >> DO Desactivation bouton start joueurs
+    // DO Reinitialisation flags serveurs si plus de joueurs
+    // DO récupération d'office des flags serveur a la connection
+    // DO Désactivation du bouton Start pour les simples connectés
+    // DO BUG Décalage Synchro startlevel sur démarage manuel...
+     
+    // DO Individualisation tests touches pilotage client
+    // DO envoi + reception mouvements joueurs
+    // Nettoyer et refactoriser le code
+    // synchroniser le loop
+    // DO BUG "partis" >>>> Vidage liste qd joueurs all deconnected
+    // mettre en place un multiroom
+    // Encours Syncrho framerate selon navigateur
+    // DO Affichage de la liste des coureurs pour les simples connectés
+    // ( ANNULE >>> plus le temps... ) Visualisation course en mode 'spectateur'...
+    // DO BUG sur IE...
+    // DO Affichage chat ds liste déroulante >> jqueryBox
+    // DO Reprise css générales...
+     
+    
+    // ----------------------------------------------------------
+    // Finalisation :
+    // OK Reprendre le code client et externaliser le maximum de fonctions
+    // OK Rendre les fonctions accessibles coté client comme coté serveur.
+    // OK Tester. Si tt est OK :
+    // -- ensuite : 
+    // OK Créer les obstacles coté serveur
+    // OK Synchroniser les positions obstacles...
+    // OK Synchroniser la création de débris a la volée...
+    // OK Synchroniser la positions des débris  
+    // ( annulé, plus le temps.... ) Enfin, faire un systeme de prédiction et d'interpolation pour
+    // ---- Joueurs
+    // ---- Obstacles
+    // ---- Debris
+    // -- Ajouter les messages de collision ds le tchat
+    // -- Ajouter les messages les sorties de pistes
+    // -- ( annulé, plus le temps.... ) Mettre le tout en multiroom
+    // -- ( annulé, plus le temps.... ) Connectés entrant >>> Nvelle Room
+    // -- Si ok > Supprimer la liste des connectés et des Users...
+    // -- Trouver un moyen de simuler le lag en local...
+    // ECHEC Deploiement et test sur OpenShift 
+    // DO Deploiement et test sur Nodejitsu
+    
+      
+     // ----------- variables de dev
+     var cptStartLevel = 0;
+     
+     
+     // ------------------- Flags d'état
+     var gameSession = false; // Bloque le startlevel
+     var lockGameSession = false; // Bloque l'inscription de nouveaux joueurs
+     var maxPlayersSession = 6; // Nombre de joueurs maximum
+     var activeSendPos = false; 1
+     var playerFramerate = 50;
+    
+    
+    var targetX = 500, targetY = 200, targetRadius = 30;
+    var freesePlayerTime = 5000; 
+
+    // Tableau des joueurs...
+    var listeJoueurs = new Array();
+    // var faitchier = {};
+    var nbJoueurs =  listeJoueurs.length;
+    
+    // Tableau des spectateurs
+    var listeSpectateurs = new Array();
+    
+    // Variable de message
+    var message = "";
+    
+    // Initialisation 1er niveau
+    var level = new common.level();
+    level.number = 1;
+    level.endLevel = false;
+    level.chrono = 0;
+    level.type = "Niveau ";
+    
+    // Activation du niveau
+    var activeLevel = false;
+      
+    // Pour le compte a rebour
+    var secondeDecompte = 3;
+    // Le clearInterval etant capricieux
+    // On le double par un simple flag d'état...
+    var endDecompte = false; 
+    
+    // Tableau d'obstacles vide coté client
+    var obstacles = new Array();
+    
+    // Tableau de débris vide coté client
+    var debris = new Array();
+    
+    // Le nombre de niveaux correspond au nombre d'obstacles...
+    // var maxLevels = obstacles.length;
+    var maxLevels = 0;
+    
+    var TimerSendPlayersPos;
+    /**/
+    
+    /*// Messages 
+    var welcomePlayer = "";
+    welcomePlayer = "Vous êtes inscrit comme pilote.\n";
+    welcomePlayer += "Vous pouvez lancer la course à tout moment...\n";
+    welcomePlayer += "Sinon départ automatique dès le 6ème inscrit.\n";
+    welcomePlayer += " \n";
+    welcomePlayer += " ------ Rêgles ------ \n";
+    welcomePlayer += "Objectif > Atteindre la cible circulaire.\n";
+    welcomePlayer += "Collisions > Perte de conrôle pendant 10 secondes.\n";
+    welcomePlayer += "Sorties de piste > Retour à la grille de départ.\n";
+    welcomePlayer += " ------------ \n";
+    welcomePlayer += "Vous êtes en vert et les autres coureurs en noir.";
+    
+    var welcomeSpectateur = "";
+    welcomeSpectateur = "La course est dèjas partie...\n";
+    welcomeSpectateur += " >> Les inscriptions sont closes.\n";
+    welcomeSpectateur += "Toutefois, le tchat reste ouvert \n";
+    welcomeSpectateur += "et vous pouvez dialoguer avec les pilotes.";
+    
+    var messageGameOpen = "";
+    welcomeSpectateur = "Tous les pilotes sont partis...\n";
+    welcomeSpectateur += " >> Les inscriptions sont réouvertes.\n";
+    welcomeSpectateur += "Rechargez la page pour vous inscrire...";
+    /**/
+    
+    
+    
+    
+    
+    
+    // generic way to set animation up
+    window.requestAnimFrame = (function(callback){
+        return window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function(callback){
+            window.setTimeout(callback, 1000 / 60);
+        };
+    })();
+    
+   
+
+// --------------------------------- Chargement        
+window.onload = function () {
+                  
+            // -----------------
+            enableStartButton();
+            var canvas = document.getElementById('myCanvas');
+            var context = canvas.getContext('2d');
+            var started = false, previousMousePos;
+            var mousePos;
+            var vitesseX=0; vitesseY = 0;
+          
+            // Pour calculer le framerate
+            var show_fps = true;
+            var lastrun = 0;
+            
+            // Flag d'etat de fin de jeu
+            var endGame = false;
+            
+            // Initialisation du chrono
+            var startTime = 0; 
+           
+           
+           // Pour l'appui sur une touche,
+           // on boucle sur tous les joueurs de la liste
+           // et on teste le joueur local et les touches qui lui sont affectées
+           function checkArrowKeysUp2(e){
+              var arrs= [], key= window.event? event.keyCode: e.keyCode;
+              for (joueur in listeJoueurs){
+                 //common.checkCollisionsWithObstacles2(context,listeJoueurs[joueur]);
+                 if  (listeJoueurs[joueur].idUnique == clientUUID ) {
+                    if (common.doChrono(listeJoueurs[joueur].lastTimeCollision) > freesePlayerTime ) { 
+                         if(key == listeJoueurs[joueur].KeyLeft) {listeJoueurs[joueur].vitesseX= 0;} 
+                         if(key == listeJoueurs[joueur].KeyRight) {listeJoueurs[joueur].vitesseX=0;}
+                         if(key == listeJoueurs[joueur].KeyUp) {listeJoueurs[joueur].vitesseY=0;}
+                         if(key == listeJoueurs[joueur].KeyDown) {listeJoueurs[joueur].vitesseY=0;}
+                     }
+                   
+                  }
+              }  
+           }
+          
+           // idem pour le relachement de touches
+           function checkArrowKeysDown2(e){
+              var arrs= [], key= window.event? event.keyCode: e.keyCode;
+              for (joueur in listeJoueurs){
+                  //common.checkCollisionsWithObstacles2(context,listeJoueurs[joueur]);
+                  if  (listeJoueurs[joueur].idUnique == clientUUID ) {
+                     if (common.doChrono(listeJoueurs[joueur].lastTimeCollision) > freesePlayerTime ) {
+                       if(key == listeJoueurs[joueur].KeyLeft) {listeJoueurs[joueur].vitesseX= -4;} 
+                       if(key == listeJoueurs[joueur].KeyRight) {listeJoueurs[joueur].vitesseX=4;}
+                       if(key == listeJoueurs[joueur].KeyUp) {listeJoueurs[joueur].vitesseY=-4;}
+                       if(key == listeJoueurs[joueur].KeyDown) {listeJoueurs[joueur].vitesseY=4;}
+                     }
+                  }
+              } 
+          }
+          /**/
+        
+          document.onkeydown=checkArrowKeysDown2;
+          document.onkeyup=checkArrowKeysUp2;
+          
+          
+      
+      // Nb de fois ou le framerate a été calculé...
+      var nbShowLocalFPS = 0;
+      
+      // On vas stocker les 50 derniers fps dans un Array
+      // Pour faire une moyenne si besoin de determiner 
+      // le client le plius rapide et le plus lent...
+      var listFPS = new Array();
+      var moyenneFPS = 0;
+      
+      // Framerate de la machine cliente
+      // Adapté de: http://jsfiddle.net/vZP3u/
+      function showLocalFPS(lastRun){
+          var delta = (new Date().getTime() - lastRun)/1000;
+          lastRun = new Date().getTime();
+          fps = 1/delta;
+          // On stoke les 50 derniers fps
+          // pour établir une moyenne 
+          var totalFPS = 0;
+          if (fps != 'Infinity') {
+            // Si on a pas encore le nombre
+            // requis d'éléments
+            for (i = 0; i < 50; i++){
+               if (! listFPS[i]) {
+                  listFPS.push(fps);
+                  break;
+                }
+            }
+            // Si on a 50 enregistrements
+            if (listFPS.length == 50) {
+               listFPS.push(fps);  // On ajoute un 10e élément    
+               listFPS.shift();  // On retire le 1er élément
+            }
+          } 
+          // On calcule la moyenne dès
+          // le 10ème enregistrement...
+          if (listFPS.length > 10) {
+              var Total = 0;
+              for(i = 0; i < listFPS.length ; i++){
+                Total += listFPS[i];
+                } 
+              
+              moyenneFPS = Total/listFPS.length;
+              //alert (moyenneFPS); 
+              /**/
+          }
+          //var message = delta;
+          //alert (message) ;
+          nbShowLocalFPS ++;       
+          document.getElementById("fps").innerHTML = "Framerate: "+fps+ " fps" + nbShowLocalFPS;
+          return lastRun;
+      
+      }    
+          
+      
+
+      
+      // Framerate de la machine cliente
+      // Adapté de: http://jsfiddle.net/vZP3u/
+      function getLocalFPS(lastRun){
+          var delta = (new Date().getTime() - lastRun)/1000;
+          lastRun = new Date().getTime();
+          fps = 1/delta; 
+          return fps;
+      
+      }    
+          
+      // -------------------------------- intégration des WebSockets
+     
+      var socket = io.connect();
+      
+      // Création objet joueur avec paramètres par défaut
+      var clientPlayer = new common.joueur('incognito','green',0,37,38,39,40);
+      // On lui attribue un UUID
+      clientPlayer.idUnique = common.createUUID();
+      clientUUID = clientPlayer.idUnique;
+      document.getElementById("uuid").innerHTML = "Votre UUID: "+clientUUID;
+      // Initialisation du flag spectateur
+      // var spectateur = false;
+     
+      // on connection to server, ask for user's name with an anonymous callback
+      socket.on('connect', function(){       
+        // On Demande les éléments au serveur
+        socket.emit('getLockGame'); //  receiveLockServerGame
+        socket.emit('getListObstacles'); //  receivedObstacles
+        // Pour eviter les prompts fantômes sur nodejitsu
+        // La valeur isRegistered sera mise a true coté serveur
+        if (clientPlayer.isRegistered == false){
+          messagePrompt = "Nom ?";
+          clientPlayer.name = prompt(messagePrompt);
+          if (clientPlayer.name == null || clientPlayer.name == '' || clientPlayer.name == 'undefined' ) {
+              disableStartButton();
+              return;
+              }
+          // Demande d'inscription dans la liste des pilotes...
+          socket.emit('addPlayer', clientPlayer,maxPlayersSession,lockGameSession);
+        }
+      });
+        
+
+      // Listener - Reception de la liste des obstacles
+      socket.on('receivedObstacles', function(data) { 
+        // ObjectDump(data, 'receivedObstacles')
+        obstacles = new Array();    
+        for (var i in data) {obstacles.push(data[i]);}
+        maxLevels = obstacles.length;
+    	});
+      
+      
+      // Listener - Reception de la liste des débris
+      socket.on('receivedDebris', function(data) { 
+        debris = new Array();    
+        for (var i in data) {debris.push(data[i]);}
+    	});
+       
+      
+      // Listener - Réception et mise a jour de la liste des pilotes 
+    	socket.on('updatePlayers', function(data) { 
+        // On vide la liste ( pour virer les joueurs déconnectés)
+        listeJoueurs = new Array();
+        var debugmessage = "";
+        // Et on la recrée...        
+        for (var i in data) { listeJoueurs.push(data[i]);}
+        // On affecte le clientPlayerLocal a son objet correspondant de la liste
+        for (joueur in listeJoueurs){
+            if  ( listeJoueurs[joueur].idUnique == clientUUID ){
+                 clientPlayer = listeJoueurs[joueur];
+                 document.getElementById("uuid").innerHTML = '<strong>Bienvenue '+clientPlayer.name+'. Vous êtes le pilote n°'+clientPlayer.number+ '</strong>';
+            
+            };
+        };     
+        // Mise a jour de l'Affichage liste pilotes
+        $('#listePlayers').empty();     
+        $.each(data, function(key, value) {
+    			$('#listePlayers').append('<div>' + key + '</div>');
+          //$('#listePlayers').append('<div> N°' + value.number + " " +value.name + '</div>');
+    		});
+        // Lancement auto...
+        // Uniquement si la session de jeux n'est pas encore vérouillée...
+        if (lockGameSession == false) {
+           // Si le nombre max d'inscrits est atteind...
+           if (listeJoueurs.length == maxPlayersSession) {
+                gameSession = true;
+                lockGameSession = true;
+                socket.emit('sendLockGame', lockGameSession);
+                disableStartButton();
+           }
+        };
+    	});
+
+      
+      // Listener - Réception de la liste des spectateurs
+    	socket.on('updateusers', function(data) {
+        listeSpectateurs = new Array();
+        for (var i in data) {
+             listeSpectateurs.push(data[i]);
+        };
+        // On affecte le clientLocal a son objet correspondant de la liste
+        for (spectateur in listeSpectateurs){
+            if  ( listeSpectateurs[spectateur].idUnique == clientUUID ){
+                 clientPlayer = listeSpectateurs[spectateur];
+                 document.getElementById("uuid").innerHTML = '<strong>Bienvenue "'+clientPlayer.name+'"</strong>';
+            };
+        }; 
+        $('#users').empty();
+        $.each(data, function(key, value) {
+    			$('#users').append('<div>' + key + '</div>');        
+        });
+      }); 
+      
+      
+      
+      
+      // Listener : reception d'un mouvement joueur 
+      socket.on('updateMoves', function(moveObject) { 
+          common.updateMovesInListPlayers2(listeJoueurs,moveObject);
+      });
+
+
+      socket.on('updateTEST', function(moveObject) { 
+          common.updateMovesInListPlayers2(listeJoueurs,moveObject);
+          alert (moveObject.name + " " + moveObject.level); 
+      });
+
+      
+      // Listener >>> Qd le serveur répond a la requête  'getLockGame'
+      socket.on('receiveLockServerGame', function (lockServerGameSession) {
+          lockGameSession = lockServerGameSession;
+          // Si le jeu est déjàs lancé ( inscriptions closes )
+          if  ( lockGameSession == true) {
+                disableStartButton();
+                // puis demande de la liste des joueurs pour affichage...
+                socket.emit('getSpectateursListPlayers');
+                }
+      });
+          
+      // Listener >>> Qd le serveur répond a la requête  'getNbPlayers'
+      socket.on('receiveNbPlayers', function (nbPlayers) {
+          nbPlayersSession = nbPlayers;
+      });
+      
+      
+       // TODO inutilisée ???
+       /*// Listener >>> Qd le serveur répond a la requête  'getListPlayers'
+       socket.on('receiveListPlayers', function(listePlayers){
+          // Mise a jour simple de l'Affichage liste pilotes
+          $('#listePlayers').empty();     
+          $.each(listePlayers, function(key, value) {
+      		  $('#listePlayers').append('<div>' + key + '</div>');
+      		});
+       
+       });
+       /**/
+       
+       
+      // Listener - reception liste ds joueurs pour affichage simple ( mode spectateur )
+    	socket.on('updatePlayersForSpectateurs', function(data) { 
+        // Mise a jour de l'Affichage liste pilotes
+        $('#listePlayers').empty();     
+        $.each(data, function(key, value) {
+    			$('#listePlayers').append('<div>' + key + '</div>');
+    		});
+        
+    	});
+       
+      // listener - reception message CHAT
+    	socket.on('updatechat', function (username, data) {
+    		//$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+        // On passe par le chatbox jquery maintenant, c'est plus cool
+    	  $("#chat_div").chatbox("option", "boxManager").addMsg(username, data);
+      });
+
+      
+      // Listener - Reception flag de vérouillage et lancement
+      socket.on('updateLockServerGame', function(lockServerGameSession) { 
+        gameSession = true;
+        lockGameSession = true;
+        disableStartButton();
+        //startLevel();
+      });
+      
+      
+      
+       // Message de cible atteinte
+       var sendWinnerMessage = function (message){
+          socket.emit('sendCanvasMessage',message);
+       };
+      
+      
+      // Listener - Message Canvas bandeau
+      socket.on('updateCanvasMessage', function(serverMessage) {
+         common.writeMessage(serverMessage);
+      });
+      
+      // Listener - Mise a jour level + message Canvas bandeau
+       socket.on('updateLevelMessage', function(serverMessage, serverLevel) {
+        common.writeMessage(serverMessage, serverLevel);
+        level = serverLevel;
+      });  
+      
+      // Listener - Mise a jour level
+       socket.on('updateLevel', function(serverLevel) {
+        level = serverLevel;
+      });  
+      
+      // Listener - Message pour le Canvas principal
+      socket.on('updateCanvasGamer', function(serverMessage) {
+        common.writeMultiLignes (canvas,context,serverMessage);
+      });
+      
+      // Listener - Réinitialisation du texte bouton START
+      socket.on('GameOverButton', function() {
+         reinitTexteStartButton() ;
+      });
+      
+      // Listener - Effacement Canvas principal
+      socket.on('clearScreen', function() {
+        context.clearRect(0,0, canvas.width, canvas.height);
+      });
+      
+      // Partie Jquery  ---------------------
+    	
+      $(function(){
+          // Bouton Start...
+          $('#startsend').click( function() {
+             if (lockGameSession == false) { 
+                gameSession = true;
+                lockGameSession = true;
+                socket.emit('sendLockGame', lockGameSession);
+                disableStartButton();
+              }
+          });
+        });
+        
+        // Désactivation du bouton start
+        function disableStartButton(){
+          $("#startsend").prop('value', '...Course lancée...');
+          $("#startsend").prop('disabled',true);
+        }       
+       
+        // Activation du bouton start
+        function enableStartButton(){
+          $("#startsend").prop('disabled',false);
+         }
+         
+        // Reinitialisation du texte
+        function reinitTexteStartButton(){
+           $("#startsend").prop('value', '...Lancer la course...');
+         } 
+    
+         // Ajout d'un chatbox jquery...
+         var box = $("#chat_div").chatbox({id:"chat_div", 
+            user:{key : "value"},
+            title : "Messages",
+            // width: 600,
+            messageSent : function(id, user, msg) {
+                socket.emit('sendchat', msg);
+          }});
+           
+         
+       // --------------------- 
+         
+       // Nettoyage de la piste coté serveur
+        var  clearDebris = function(){
+           socket.emit('clearDebris');
+        }; 
+
+       // Envoi du joueur incluant ses nouvelles positions
+       // toutes les xxx millisecondes...
+       function sendPlayersPos(){
+            if (clientPlayer.isRegistered == true && clientPlayer.isSpectateur == false){
+                socket.emit('sendClientPlayer',clientPlayer);
+                }
+            TimerSendPlayersPos = setTimeout(sendPlayersPos,playerFramerate);
+       };  
+      
+      
+       // débugg : Moyenne fps ttes les secondes
+       function debuggFPS() {
+           document.getElementById("moyennefps").innerHTML = "Moyenne Framerate: "+moyenneFPS+ " fps";
+           setTimeout(debuggFPS, 1000);
+       }
+      
+   
+      // Idem pour les obstacles et les débris
+      // ... Désactivé >>> Obstacles gérés par loop serveur...
+      function sendObstaclesPos(){
+            var debug = '';
+            // ObjectDump(obstacles, 'obstacles')
+             if (activeSendPos == true ) {
+                  // socket.emit('sendPlayerObstacles', obstacles);
+                  // socket.emit('sendPlayerDebris', debris);
+                };  
+            //socket.emit('senpPlayerObstacles', obstacles);
+            setTimeout(sendObstaclesPos,15);   
+       };
+          
+          
+       // --------------------- Jeux ------------------  
+          
+
+          
+          // Pole position
+          // common.startPolePosition (context,canvas,listeJoueurs,level);
+          
+          
+          //  >>> TEST serverLoop
+          // Listener - A la reception d'un message de niveau
+           socket.on('stopClientLoop', function() {
+            //context.clearRect(0,0, canvas.width, canvas.height);
+            activeLevel = false;
+            // alert ("StopLoop");
+          });   
+      
+          socket.on('startClientLoop', function() {
+            clearTimeout(TimerSendPlayersPos);
+            if ( gameSession == true ) { 
+              nbJoueurs = listeJoueurs.length;
+              if (level.number > maxLevels) {
+                endGame = true;
+                }
+              if (endGame == true) {
+                 var endMessage = "GAME OVER";
+                 // Affichage du classement final
+                 common.showScores(canvas,context,listeJoueurs,startTime,level,endMessage);
+              } 
+              else if ( endGame == false ) {
+                startTime = 0;
+                activeLevel = true;
+                lastRun = 0;
+                activeSendPos = true;
+                sendPlayersPos();
+                sendObstaclesPos();
+                debuggFPS();
+                common.startPolePosition (canvas,listeJoueurs,nbJoueurs,level); 
+                mainLoop();
+              }
+            }
+            // alert ("StopLoop");
+          });  
+      
+      
+      
+          /*//  >>> TEST serverLoop
+          // Listener - A la reception d'un message de niveau
+           socket.on('initClientStartLevel', function() {
+           startLevel();  
+            // alert ("initClientStartLevel");
+          });
+          /**/
+          
+
+          
+          // Boucle d'animation  ------------------------------------------
+          var thisloop = 0;
+          function mainLoop() {
+             
+            
+                // Tant que le niveau est actif,
+                // On execute la suite
+                if (activeLevel == true){
+                
+                // socket.emit('sendchat', 'BUG > mainLoop() >>> activeLevel == true'); 
+                    
+                // Lancement et affichage du Chrono
+                if(startTime == 0) startTime = new Date();
+                //showChrono(startTime);
+                common.showChrono(startTime);
+                
+                // Pour calculer le framerate
+                // Adapté de: http://jsfiddle.net/vZP3u/
+                if(lastRun == 0) {lastRun = new Date().getTime();}
+            
+                //if (show_fps) lastRun = showFPS(lastRun);
+                if (show_fps) lastRun = showLocalFPS(lastRun);
+                
+                // Effacement, dessin, collisions, etc.
+                context.clearRect(0,0, canvas.width, canvas.height);
+
+                // Zone protégée
+                // drawStartLine(context,canvas);
+                common.drawStartLine(context,canvas);
+
+                // Gestion des sorties de piste...
+                touche = common.checkSortieDePiste(canvas,clientPlayer); //  >>> TEST serverLoop
+                
+                // Dessin des obstacles
+                common.drawObstacles(canvas,context,level);
+                                
+                // Dessin des débris
+                // common.drawDebris(canvas,context,debris);
+                
+                // Dessin des joueurs
+                var isClient = false;
+                for (joueur in listeJoueurs){
+                   if  (listeJoueurs[joueur].idUnique == clientUUID ) {
+                        // socket.emit('sendchat', 'BUG > mainLoop() >>> clientUUID');
+                        isClient = true;
+                        if (common.doChrono(listeJoueurs[joueur].lastTimeCollision) > freesePlayerTime ) {
+                        listeJoueurs[joueur].isFreeze = false;
+                        }   
+                    }
+                    common.drawOnePlayer2(canvas, context,listeJoueurs[joueur],isClient,level);
+                    // socket.emit('sendchat', 'BUG > mainLoop() >>> common.drawOnePlayer2');
+                    isClient = false;
+                }
+                
+                // Déplacement des joueurs
+                for (joueur in listeJoueurs){
+                        listeJoueurs[joueur].playerX += listeJoueurs[joueur].vitesseX;
+                        listeJoueurs[joueur].playerY += listeJoueurs[joueur].vitesseY; 
+                }
+                
+                // Test Collisions obstacles
+                var touche = false;
+                touche = common.checkCollisionsWithObstacles2(context,clientPlayer,debris);
+                
+                // Test Collisions débris
+                var touche = false;
+                touche = common.checkCollisionsWithDebris(context,clientPlayer,debris);
+                
+                // Test Collision cible
+                for (joueur in listeJoueurs){ 
+
+                  // On ne teste pas les joueurs déjas arrivés...
+                  //if ( listeJoueurs[joueur].level == false ) {
+                  if ( listeJoueurs[joueur].level < level.number ) {  
+                     if(common.circRectsOverlap(listeJoueurs[joueur].playerX, listeJoueurs[joueur].playerY, 20, 20, targetX, targetY, targetRadius)) {                                         
+                         common.drawTarget(canvas, context, targetX, targetY, targetRadius, 'yellow');
+                         
+                         // Pour affichage...
+                         var oldScore = listeJoueurs[joueur].score;
+                         
+                         // On désactive ce joueur pour le niveau courant
+                         listeJoueurs[joueur].level = level.number;
+                         //socket.emit('sendchat', 'BUG > Client > CIBLE !');                         
+                         
+                         // On le décompte du total de joueurs actifs
+                         nbJoueurs = nbJoueurs-1;
+                         
+                         
+                         // incrémentation du score
+                         // Le premier marque (n -1) points, le dernier 0 points, n étant le nombre de joueurs...
+                         // Ex: sur 3 joueurs, le 1er gagne 2, le second 1 et le troisième 0...
+                         // Il suffit donc d'ajouter à son score le nombre de joueurs derrière lui... 
+                         listeJoueurs[joueur].score +=  nbJoueurs;
+                         
+                         // Message 
+                         message = "Joueur N°"+listeJoueurs[joueur].number;
+                         message += " ("+listeJoueurs[joueur].name+")";
+                         message += " > Score "+ oldScore +" + "+nbJoueurs+" = "+listeJoueurs[joueur].score;                         
+                         
+                         sendWinnerMessage(message);  
+                         
+                         
+                         break;  
+                      } else {                    
+                         common.drawTarget(canvas, context, targetX, targetY, targetRadius, "#8ED6FF");
+                      }
+                   }   
+
+                 }
+                 /**///  >>> END TEST serverLoop
+                 // common.drawTarget(canvas, context, targetX, targetY, targetRadius, "#8ED6FF"); // Add TEST SERVERLOOP
+                 
+                
+            } // Fin de boucle sur niveau actif    
+
+            // On reexecute la fonction mainloop après 60ms
+            requestAnimFrame(function(){
+                // Tant que le niveau est actif... on boucle...
+                if (activeLevel == true){
+                    mainLoop();
+                // Sinon, on lance le niveau suivant..
+                } else {
+                  // startLevel();
+                }
+                
+            });
+          } // -------------- fin  mainLoop()
+
+          //startLevel();
+        };
+    
+    </script>
+
+
+ <body style="width:">
+ 
+ 
+ <div id="containerEcran">
+
+    <div id="containerAiredejeu">
+      
+      <canvas id="messageCanvas" width="600" height="35">
+      </canvas>
+       <br/>
+      <canvas id="myCanvas" width="600" height="400">
+      </canvas>
+      <div>
+        <span id = "uuid"></span>
+      </div>
+      </hr/>
+      <div>
+         <span id = "moyennefps"></span>
+      </div>
+      
+      <hr/>
+      <div>
+        <span id = "chrono"></span>
+        -
+        <span id = "fps"></span>
+      </div>
+
+      
+    
+    </div>
+
+ 
+    <div id="containerConnectes">
+    	
+      <div id="containerPilotes">
+        <b>Pilotes engagés</b>
+      	<div id="listePlayers"></div>
+        <input type="button" id="startsend" value="Lancer la course" />
+      </div> 
+      <hr>
+      <div id="containerUsers">
+        <b>Spectateurs</b>
+      	<div id="users"></div>
+      </div>
+      <hr>
+      
+    
+    </div>
+
+     <div class="hidden">
+        <div id="chat_div"></div>
+        <hr />
+        <div id="log"></div>  
+    </div>
+      
+    <div  style="clear:both"></div>
+     <h1 class="hidden" > Jeux websocket NodeJitsu </h1>
+</div>
+
+
+</body>
+</html>
