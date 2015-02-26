@@ -18,7 +18,10 @@ app.configure(function () {
 /**/
 
 // launch the http server on given port
-//Get the environment variables we need.
+// Get the environment variables we need.
+// Titi :  Factorisation du numéro de port
+// Teste si présence d'une variable d'environnement Hosting (Heroku) sinon port 8080 pour local 
+var port = process.env.PORT || 8080;
 server.listen(8080);
 
 // routing
