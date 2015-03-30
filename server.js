@@ -21,8 +21,12 @@ app.configure(function () {
 // Get the environment variables we need.
 // Titi :  Factorisation du numéro de port
 // Teste si présence d'une variable d'environnement Hosting (Heroku) sinon port 8080 pour local 
-var port = process.env.PORT || 8080;
-server.listen(8080);
+// var port = process.env.PORT || 8080;
+// variables d'environnement en variables globale pour les passer à la méthode websocket
+// ipaddress = process.env.OPENSHIFT_NODEJS_IP || process.env.IP ||"127.0.0.1";
+var port      = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 8080;
+
+server.listen(port);
 
 // routing
 app.get('/', function (req, res) {

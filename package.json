@@ -1,15 +1,14 @@
 {
-  "name": "tp4-v2",
-  "subdomain": "titileterrible-tp4-v2",
-  "scripts": {
-    "start": "server.js"
-  },
-  "version": "1.0.0-35",
-  "engines": {
-    "node": "0.10.x"
-  },
-  "dependencies": {
-    "express": "3.4.x",
-    "socket.io": "0.9.x"
-  }
+    "name": "tp3-websocket-v2",
+    "version": "0.0.1",
+    "dependencies": {
+        "express": "3.4.x",
+        "socket.io": "0.9.x"
+    },
+	"scripts": {
+	  "start": "node server.js"
+	},
+	"main": "server.js",
+    "author": "titileterrible <thierry.bergeron@inria.fr>",
+    "description": "Jeux HTML5 basé sur socket.io/websocket"
 }
